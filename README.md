@@ -96,7 +96,7 @@ emuse \
 | `--output-file`       | `-o`  | Yes      | Name of the output html report to be generated                                                              |
 | `--sample-name`       | `-s`  | Yes      | Name of the sample to generate the report for                                                               |
 | `--neg-control`       | `-n`  | Yes      | Name of the negative control sample                                                                         |
-| `--config`            | `-c`  | No       | Path to configuration file (default: `config.toml`)                                                         |
+| `--config`            | `-c`  | No       | Path to configuration file (default: the bundled default `emuse/data/configs/config.toml`)                          |
 | `--prob-score`        | `-p`  | No       | Include the generation and addition of probability scores in the report                                     |
 | `--alignment-metrics` | `-m`  | No       | Include metrics based on the raw alignment of reads to the database (percent identity and percent coverage) |
 
@@ -161,6 +161,21 @@ A table summarizing the negative control sample, with the same first 6 columns a
 **Color coding:**
 
 - **Purple rows** indicate spike species
+
+## Alignment metrics
+
+`emuse-alignment-metrics` computes the median aligned identity and coverage
+per taxon from Emu's alignments (`--keep-files`) and writes them as a small TSV
+(`tax_id`, `median_identity`, `median_coverage`):
+
+```bash
+emuse-alignment-metrics \
+  --alignments results/sample_01_emu_alignments.sam \
+  --output-file results/sample_01_alignment-metrics.tsv
+```
+
+When `results/<sample>_alignment-metrics.tsv` exists, `emuse --alignment-metrics`
+uses it instead of reading the alignments.
 
 ## Citations
 - [EMU](https://github.com/treangenlab/emu)

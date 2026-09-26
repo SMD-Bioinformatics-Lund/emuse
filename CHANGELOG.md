@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added modules for parsing and analysing Emu results so they can be imported by other tools
+- Added support for multiple negative controls
+- Added `emuse-alignment-metrics` command that writes median identity and coverage per taxon to a TSV
+
+### Changed
+
+- Input files are found for any TRANA preprocessing, not only `_downsampled`
+- Abundance columns are selected by name so ITS results work
+- Version is read from `emuse/__init__.py`
+
+### Fixed
+
+- Fixed `--config` default so the default config is used from any directory
+- Fixed version mismatch across 3 files
+
 ## [1.1.0]
 
 ### Documentation
