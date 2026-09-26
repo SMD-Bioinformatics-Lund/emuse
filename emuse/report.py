@@ -5,7 +5,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader
 
 from emuse.abundance import abundance_table, read_rel_abundance, to_records
-from emuse.alignment import alignment_metrics
+from emuse.alignment import alignment_metrics, read_alignment_metrics
 from emuse.files import locate_outputs
 from emuse.negative_control import compare_to_negative_controls
 from emuse.qc import summary_stats, trana_version
@@ -75,6 +75,12 @@ def build_legend(prob_score):
     return '<p class="text-gray-700 italic mt-2">' + "".join(legend_lines) + '</p>'
 
 
+def load_alignment_metrics(outputs):
+    if outputs.alignment_metrics is not None:
+        return read_alignment_metrics(outputs.alignment_metrics)
+    return alignment_metrics(outputs.alignment)
+
+
 def render_report(input_dir, sample_name, neg_control, spike_species=(),
                   normalising_spike_species=None, prob_score=False, include_alignment_metrics=False):
     sample_files = locate_outputs(input_dir, sample_name)
@@ -87,8 +93,8 @@ def render_report(input_dir, sample_name, neg_control, spike_species=(),
         sample = sample.merge(read_assignment_stats(sample_files.read_assignment), on="tax_id", how="left")
 
     if include_alignment_metrics:
-        sample = sample.merge(alignment_metrics(sample_files.alignment), on="tax_id", how="left")
-        control = control.merge(alignment_metrics(control_files.alignment), on="tax_id", how="left")
+        sample = sample.merge(load_alignment_metrics(sample_files), on="tax_id", how="left")
+        control = control.merge(load_alignment_metrics(control_files), on="tax_id", how="left")
 
     sample_flags = compare_to_negative_controls(
         to_records(sample), {neg_control: to_records(control)}, spike_species, normalising_spike_species

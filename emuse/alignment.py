@@ -25,6 +25,14 @@ def alignment_metrics(alignment_path):
     return pd.DataFrame(rows, columns=METRICS_COLUMNS)
 
 
+def write_alignment_metrics(metrics, path):
+    metrics[METRICS_COLUMNS].to_csv(path, sep="\t", index=False)
+
+
+def read_alignment_metrics(path):
+    return pd.read_csv(path, sep="\t", dtype={"tax_id": str})[METRICS_COLUMNS]
+
+
 def get_align_stats(alignment, alignment_file):
     CIGAROP_MATCH = 0
     CIGAROP_INS = 1
