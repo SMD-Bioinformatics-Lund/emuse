@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [#24](https://github.com/kclinmicro/emuse/pull/24) Changed rows in Summary statistics, adding corrected rows for Number of reads before and after qc and downsampling (by @AnnaNoren)
+- [#26](https://github.com/kclinmicro/emuse/pull/26) Version is read from `emuse/__init__.py` (by @ryanjameskennedy)
 
 ### Fixed
 - [#25](https://github.com/kclinmicro/emuse/pull/25) Fixed bundled config path handling (reported by @ryanjameskennedy, fixed by @AnnaNoren)
+- [#26](https://github.com/kclinmicro/emuse/pull/26) Fixed version mismatch across 3 files (by @ryanjameskennedy)
 
 ## [1.1.0]
 
