@@ -1,22 +1,20 @@
 import pandas as pd
 
+TABLE_COLUMNS = ["abundance", "species", "genus", "family", "tax_id", "estimated_counts"]
+
 
 def read_rel_abundance(path):
-    abundance = pd.read_csv(path, sep="\t")
-    # Filter for wanted columns
-    abundance_filtered = abundance.iloc[:, list(range(5)) + [13]]
-    # Move the first column (taxid)
-    abundance_switched = abundance_filtered[abundance_filtered.columns[1:5]
-        .append(abundance_filtered.columns[:1])
-        .append(abundance_filtered.columns[5:])]
-    # Rename col names
-    abundance_switched = abundance_switched.rename(
-        columns={
-            "estimated counts": "estimated read counts",
-            "tax_id": "tax id"
-        }
-    )
-    # Sort based on descending abundance
-    abundance_ordered = abundance_switched.sort_values(by="abundance", ascending=False)
-    # Re-index the table
-    return abundance_ordered.reset_index(drop=True)
+    df = pd.read_csv(path, sep="\t", dtype={"tax_id": str})
+    df = df.rename(columns={"estimated counts": "estimated_counts"})
+    missing = [column for column in TABLE_COLUMNS if column not in df.columns]
+    if missing:
+        raise ValueError(f"{path} is missing columns: {', '.join(missing)}")
+    return df.sort_values(by="abundance", ascending=False).reset_index(drop=True)
+
+
+def abundance_table(df):
+    return df[TABLE_COLUMNS].copy()
+
+
+def to_records(df):
+    return df.astype(object).where(df.notna(), None).to_dict(orient="records")

@@ -6,16 +6,23 @@ from pathlib import Path
 import re
 import tomllib
 
-from emuse.abundance import read_rel_abundance
+from emuse.abundance import abundance_table, read_rel_abundance
 from emuse.alignment import get_alignment_metrics
 from emuse.files import find_emu_file
 from emuse.negative_control import absent_in_negative_control, is_enriched, is_low_abundance, is_spike
 from emuse.qc import load_multiqc_data, trana_version
-from emuse.read_assignment import read_assignment_summary
+from emuse.read_assignment import read_assignment_stats
 
 # Bundled package data (templates, CSS, taxonomy mapping, default config)
 DATA_DIR = resources.files("emuse") / "data"
 DEFAULT_CONFIG = DATA_DIR / "configs" / "config.toml"
+
+DISPLAY_COLUMNS = {
+    "tax_id": "tax id",
+    "estimated_counts": "estimated read counts",
+    "median_probability": "median probability*",
+    "mean_probability": "mean probability*",
+}
 
 def main():
     argp = argparse.ArgumentParser()
@@ -42,15 +49,15 @@ def main():
     results_dir = f"{args.input_dir}/results"
 
     # Load sample read assignment table
-    assignment_summary = read_assignment_summary(find_emu_file(results_dir, args.sample_name, "_read-assignment-distributions.tsv"))
+    assignment_summary = read_assignment_stats(find_emu_file(results_dir, args.sample_name, "_read-assignment-distributions.tsv")).rename(columns=DISPLAY_COLUMNS)
 
     # Load neg control abundance table
-    neg_control_ordered = read_rel_abundance(find_emu_file(results_dir, args.neg_control, "_rel-abundance.tsv"))
+    neg_control_ordered = abundance_table(read_rel_abundance(find_emu_file(results_dir, args.neg_control, "_rel-abundance.tsv"))).rename(columns=DISPLAY_COLUMNS)
     # Create fake index column for styling purposes (need it to start from 1 instead of 0)
     neg_control_ordered.insert(0, "row", range(1, len(neg_control_ordered) + 1))
 
     # Load sample abundance table
-    abundance_ordered = read_rel_abundance(find_emu_file(results_dir, args.sample_name, "_rel-abundance.tsv"))
+    abundance_ordered = abundance_table(read_rel_abundance(find_emu_file(results_dir, args.sample_name, "_rel-abundance.tsv"))).rename(columns=DISPLAY_COLUMNS)
 
     # Merge abundance and assignment if prob_score is given
     if args.prob_score:
