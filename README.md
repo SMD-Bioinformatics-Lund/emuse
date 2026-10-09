@@ -161,6 +161,21 @@ A table summarizing the negative control sample, with the same first 6 columns a
 
 - **Purple rows** indicate spike species
 
+## Alignment metrics
+
+`emuse-alignment-metrics` computes the median aligned identity and coverage
+per taxon from Emu's alignments (`--keep-files`) and writes them as a small TSV
+(`tax_id`, `median_identity`, `median_coverage`):
+
+```bash
+emuse-alignment-metrics \
+  --alignments results/sample_01_emu_alignments.sam \
+  --output-file results/sample_01_alignment-metrics.tsv
+```
+
+When `results/<sample>_alignment-metrics.tsv` exists, `emuse --alignment-metrics`
+uses it instead of reading the alignments.
+
 ## Citations
 - [EMU](https://github.com/treangenlab/emu)
   > Kristen D. Curry et al., “Emu: Species-Level Microbial Community Profiling
