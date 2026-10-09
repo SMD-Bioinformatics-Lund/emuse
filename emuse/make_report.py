@@ -10,7 +10,7 @@ from emuse.abundance import abundance_table, read_rel_abundance, to_records
 from emuse.alignment import get_alignment_metrics
 from emuse.files import find_emu_file
 from emuse.negative_control import compare_to_negative_controls
-from emuse.qc import load_multiqc_data, trana_version
+from emuse.qc import summary_stats, trana_version
 from emuse.read_assignment import read_assignment_stats
 
 # Bundled package data (templates, CSS, taxonomy mapping, default config)
@@ -153,8 +153,7 @@ def main():
     # Save date
     today = date.today().strftime("%Y-%m-%d")
 
-    # Load MultiQC JSON
-    multiqc_data = load_multiqc_data(f"{args.input_dir}/multiqc/multiqc_data/multiqc_data.json")
+    stats = summary_stats(f"{args.input_dir}/multiqc/multiqc_data/multiqc_data.json", args.sample_name)
 
     pipeline_version = trana_version(f"{args.input_dir}/pipeline_info/software_versions.yml")
 
@@ -166,7 +165,7 @@ def main():
         legend_neg = legend_neg_html,
         today = today,
         pipeline_version = pipeline_version,
-        multiqc_data  = multiqc_data,
+        stats = stats,
         input_dir = Path(args.input_dir).name,
         sample_name = args.sample_name,
         neg_control = args.neg_control
