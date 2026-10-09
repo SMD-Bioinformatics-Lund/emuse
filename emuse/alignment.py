@@ -3,13 +3,15 @@ import statistics
 import pandas as pd
 import pysam
 
+from emuse.files import find_emu_file
 from emuse.taxonomy import TaxTranslator
 
 
 def get_alignment_metrics(sample_name, input_dir):
-    abundance_path = f"{input_dir}/results/{sample_name}_downsampled.fastq_rel-abundance.tsv"
-    assignment_path = f"{input_dir}/results/{sample_name}_downsampled.fastq_read-assignment-distributions.tsv"
-    alignments_path = f"{input_dir}/results/{sample_name}_downsampled.fastq_emu_alignments.sam"
+    results_dir = f"{input_dir}/results"
+    abundance_path = find_emu_file(results_dir, sample_name, "_rel-abundance.tsv")
+    assignment_path = find_emu_file(results_dir, sample_name, "_read-assignment-distributions.tsv")
+    alignments_path = find_emu_file(results_dir, sample_name, "_emu_alignments.sam")
 
     df_abundance_unsorted = pd.read_csv(abundance_path, sep="\t")
     df_abundance = df_abundance_unsorted.sort_values("abundance", ascending=False)
