@@ -6,10 +6,10 @@ from pathlib import Path
 import re
 import tomllib
 
-from emuse.abundance import abundance_table, read_rel_abundance
+from emuse.abundance import abundance_table, read_rel_abundance, to_records
 from emuse.alignment import get_alignment_metrics
 from emuse.files import find_emu_file
-from emuse.negative_control import absent_in_negative_control, is_enriched, is_low_abundance, is_spike
+from emuse.negative_control import compare_to_negative_controls
 from emuse.qc import load_multiqc_data, trana_version
 from emuse.read_assignment import read_assignment_stats
 
@@ -23,6 +23,12 @@ DISPLAY_COLUMNS = {
     "median_probability": "median probability*",
     "mean_probability": "mean probability*",
 }
+
+def row_style(flags, attribute, style):
+    def apply(row):
+        return [style if getattr(flags[row.name], attribute) else ""] * len(row)
+    return apply
+
 
 def main():
     argp = argparse.ArgumentParser()
@@ -42,9 +48,6 @@ def main():
 
     env = Environment(loader=FileSystemLoader(str(DATA_DIR / "templates")))
     template = env.get_template("report.html.j2")
-
-    # Set low abundance cutoff value
-    LOW_ABUNDANCE_CUTOFF = 0.005
 
     results_dir = f"{args.input_dir}/results"
 
@@ -81,36 +84,18 @@ def main():
 
     highlight = set(config.get("spike_species", []))
     normalising_spike_species = config.get("normalising_spike_species")
-    
-    # Define function for spike species
-    def highlight_species(row):
-        if is_spike(row, highlight):
-            return ["background-color: #ddd6fe"] * len(row)
-        return [""] * len(row)
 
-    # Define function for unique species not found in negative control
-    def unique_species(row):
-        if absent_in_negative_control(row, neg_control_ordered):
-            return ["background-color: #dcfce7"] * len(row)
-        return [""] * len(row)
-    
-    def low_abundance(row):
-        if is_low_abundance(row, LOW_ABUNDANCE_CUTOFF):
-            return ["color: #9ca3af"] * len(row)
-        return [""] * len(row)
-    
-    # Define function for species normalized against spike
-    def normalised_abundance(row):
-        if is_enriched(row, abundance_ordered, neg_control_ordered, normalising_spike_species):
-            return ["background-color: #dcfce7"] * len(row)
-        return [""] * len(row)
-    
+    sample_flags = compare_to_negative_controls(
+        to_records(abundance_ordered), {args.neg_control: to_records(neg_control_ordered)}, highlight, normalising_spike_species
+    )
+    neg_control_flags = compare_to_negative_controls(to_records(neg_control_ordered), {}, highlight)
+
     # Apply functions for spike species and unique species
     styled_abundance = (abundance_assignment.style
-        .apply(normalised_abundance, axis=1)
-        .apply(unique_species, axis=1)
-        .apply(highlight_species, axis=1)
-        .apply(low_abundance, axis=1)
+        .apply(row_style(sample_flags, "enriched", "background-color: #dcfce7"), axis=1)
+        .apply(row_style(sample_flags, "absent_in_controls", "background-color: #dcfce7"), axis=1)
+        .apply(row_style(sample_flags, "spike", "background-color: #ddd6fe"), axis=1)
+        .apply(row_style(sample_flags, "low_abundance", "color: #9ca3af"), axis=1)
         .format({
             "estimated read counts": "{:.0f}",
             "abundance": "{:.2%}",
@@ -129,8 +114,8 @@ def main():
 
     # Apply function for spike species
     styled_neg_control = (neg_control_ordered.style
-        .apply(highlight_species, axis=1)
-        .apply(low_abundance, axis=1)
+        .apply(row_style(neg_control_flags, "spike", "background-color: #ddd6fe"), axis=1)
+        .apply(row_style(neg_control_flags, "low_abundance", "color: #9ca3af"), axis=1)
         .format({
             "estimated read counts": "{:.0f}",
             "abundance": "{:.2%}",
