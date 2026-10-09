@@ -4,8 +4,8 @@ from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 
 from emuse.abundance import abundance_table, read_rel_abundance, to_records
-from emuse.alignment import alignment_metrics as compute_alignment_metrics
-from emuse.files import find_emu_file
+from emuse.alignment import alignment_metrics as compute_alignment_metrics, read_alignment_metrics
+from emuse.files import existing, find_emu_file
 from emuse.negative_control import compare_to_negative_controls
 from emuse.qc import summary_stats, trana_version
 from emuse.read_assignment import read_assignment_stats
@@ -26,6 +26,13 @@ def row_style(flags, attribute, style):
     def apply(row):
         return [style if getattr(flags[row.name], attribute) else ""] * len(row)
     return apply
+
+
+def load_alignment_metrics(results_dir, sample_name):
+    metrics = existing(Path(results_dir) / f"{sample_name}_alignment-metrics.tsv")
+    if metrics is not None:
+        return read_alignment_metrics(metrics)
+    return compute_alignment_metrics(find_emu_file(results_dir, sample_name, "_emu_alignments.sam"))
 
 
 def render_report(input_dir, sample_name, neg_control, spike_species=(), normalising_spike_species=None,
@@ -61,9 +68,9 @@ def render_report(input_dir, sample_name, neg_control, spike_species=(), normali
 
     # Merge abundance and alignment based metrics
     if alignment_metrics:
-        sample_alignment_metrics = compute_alignment_metrics(find_emu_file(results_dir, sample_name, "_emu_alignments.sam"))
+        sample_alignment_metrics = load_alignment_metrics(results_dir, sample_name)
         abundance_assignment = abundance_assignment.merge(sample_alignment_metrics.rename(columns=DISPLAY_COLUMNS), on="tax id", how="left")
-        neg_control_alignment_metrics = compute_alignment_metrics(find_emu_file(results_dir, neg_control, "_emu_alignments.sam"))
+        neg_control_alignment_metrics = load_alignment_metrics(results_dir, neg_control)
         neg_control_ordered = neg_control_ordered.merge(neg_control_alignment_metrics.rename(columns=DISPLAY_COLUMNS), on="tax id", how="left")
 
     highlight = set(spike_species)

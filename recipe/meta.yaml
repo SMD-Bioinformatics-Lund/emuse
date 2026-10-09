@@ -17,6 +17,7 @@ build:
   script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   entry_points:
     - emuse = emuse.make_report:main
+    - emuse-alignment-metrics = emuse.make_report:alignment_metrics_main
 
 requirements:
   host:
@@ -33,6 +34,7 @@ requirements:
 test:
   commands:
     - emuse --help
+    - emuse-alignment-metrics --help
 
 
 about:
