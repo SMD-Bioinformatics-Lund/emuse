@@ -8,6 +8,7 @@ import tomllib
 
 from emuse.abundance import read_rel_abundance
 from emuse.alignment import get_alignment_metrics
+from emuse.files import find_emu_file
 from emuse.negative_control import absent_in_negative_control, is_enriched, is_low_abundance, is_spike
 from emuse.qc import load_multiqc_data, trana_version
 from emuse.read_assignment import read_assignment_summary
@@ -38,16 +39,18 @@ def main():
     # Set low abundance cutoff value
     LOW_ABUNDANCE_CUTOFF = 0.005
 
+    results_dir = f"{args.input_dir}/results"
+
     # Load sample read assignment table
-    assignment_summary = read_assignment_summary(f"{args.input_dir}/results/{args.sample_name}_downsampled.fastq_read-assignment-distributions.tsv")
+    assignment_summary = read_assignment_summary(find_emu_file(results_dir, args.sample_name, "_read-assignment-distributions.tsv"))
 
     # Load neg control abundance table
-    neg_control_ordered = read_rel_abundance(f"{args.input_dir}/results/{args.neg_control}_downsampled.fastq_rel-abundance.tsv")
+    neg_control_ordered = read_rel_abundance(find_emu_file(results_dir, args.neg_control, "_rel-abundance.tsv"))
     # Create fake index column for styling purposes (need it to start from 1 instead of 0)
     neg_control_ordered.insert(0, "row", range(1, len(neg_control_ordered) + 1))
 
     # Load sample abundance table
-    abundance_ordered = read_rel_abundance(f"{args.input_dir}/results/{args.sample_name}_downsampled.fastq_rel-abundance.tsv")
+    abundance_ordered = read_rel_abundance(find_emu_file(results_dir, args.sample_name, "_rel-abundance.tsv"))
 
     # Merge abundance and assignment if prob_score is given
     if args.prob_score:
