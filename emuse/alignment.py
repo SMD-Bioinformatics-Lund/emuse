@@ -3,77 +3,28 @@ import statistics
 import pandas as pd
 import pysam
 
-from emuse.files import find_emu_file
-from emuse.taxonomy import TaxTranslator
 
 
-def get_alignment_metrics(sample_name, input_dir):
-    results_dir = f"{input_dir}/results"
-    abundance_path = find_emu_file(results_dir, sample_name, "_rel-abundance.tsv")
-    assignment_path = find_emu_file(results_dir, sample_name, "_read-assignment-distributions.tsv")
-    alignments_path = find_emu_file(results_dir, sample_name, "_emu_alignments.sam")
-
-    df_abundance_unsorted = pd.read_csv(abundance_path, sep="\t")
-    df_abundance = df_abundance_unsorted.sort_values("abundance", ascending=False)
-
-    df_reads = load_read_file(assignment_path, df_abundance)
-    colnames_taxids = df_reads.columns
-
-    align_file = pysam.AlignmentFile(alignments_path)
-
-    alns_all = {}
-    for aln in align_file:
-        readid = aln.query_name  # Ex: b9bb144e-eb53-4509-8931-5f4477444a48
-        refname = aln.reference_name  # Ex: 562:emu_db:23853
-        taxid = str(aln.reference_name).split(":")[0]  # Ex: 562
-        refid = aln.reference_id  # Ex: 23853
-
-        if aln.is_secondary or aln.is_supplementary:
-            # We don't count these
-            continue
-
-        if taxid not in alns_all:
-            alns_all[taxid] = []
-        alns_all[taxid].append(aln)
-
-    taxtr = TaxTranslator()
-    aln_infos = []
-    i = 1
-    for taxid in colnames_taxids:
-        if taxid in alns_all:
-            alns = alns_all[taxid]
-            identities, coverages = collect_distribution(alns, align_file)
-            median_id = statistics.median(identities)
-            median_cov = statistics.median(coverages)
-            abundance = float(df_abundance[df_abundance["tax_id"] == taxid]["abundance"].values[0])
-            taxon = taxtr.taxid_to_label(taxid)
-            aln_infos.append(
-                {
-                    "tax id": taxid,
-                    "median aligned identity": median_id,
-                    "median aligned coverage": median_cov,
-                }
-            )
-
-    df_aln_metrics = pd.DataFrame(aln_infos)
-    return df_aln_metrics
+METRICS_COLUMNS = ["tax_id", "median_identity", "median_coverage"]
 
 
-def load_read_file(readassmt_path, df_abundance):
-    df_reads = pd.read_csv(readassmt_path, sep="\t", header=0)
-    colnames_sorted = [cn for cn in df_abundance["tax_id"] if cn in df_reads.columns]
-    df_reads = df_reads[colnames_sorted]
-    return df_reads
+def alignment_metrics(alignment_path):
+    identities = {}
+    coverages = {}
+    with pysam.AlignmentFile(str(alignment_path)) as align_file:
+        for aln in align_file:
+            if aln.is_unmapped or aln.is_secondary or aln.is_supplementary:
+                continue
+            taxid = aln.reference_name.split(":")[0]
+            identity, coverage = get_align_stats(aln, align_file)
+            identities.setdefault(taxid, []).append(identity)
+            coverages.setdefault(taxid, []).append(coverage)
 
-
-def collect_distribution(alns, alignment_file):
-    identities = []
-    coverages = []
-    for aln in alns:
-        identity, coverage = get_align_stats(aln, alignment_file)
-        identities.append(identity)
-        coverages.append(coverage)
-    return identities, coverages
+    rows = [
+        [taxid, statistics.median(identities[taxid]), statistics.median(coverages[taxid])]
+        for taxid in identities
+    ]
+    return pd.DataFrame(rows, columns=METRICS_COLUMNS)
 
 
 def get_align_stats(alignment, alignment_file):
