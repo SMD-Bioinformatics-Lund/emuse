@@ -1,12 +1,9 @@
 import pandas as pd
 
 
-def read_assignment_summary(path):
+def read_assignment_stats(path):
     assignment = pd.read_csv(path, sep="\t")
-    # Select all columns except the first one
-    assignment_filtered = assignment.iloc[:, 1:]
-    # Compute mean and median for each column
-    assignment_summary = assignment_filtered.agg(['median', 'mean']).T.reset_index()
-    # Rename columns
-    assignment_summary.columns = ['tax id', 'median probability*', 'mean probability*']
-    return assignment_summary
+    summary = assignment.iloc[:, 1:].agg(["median", "mean"]).T.reset_index()
+    summary.columns = ["tax_id", "median_probability", "mean_probability"]
+    summary["tax_id"] = summary["tax_id"].astype(str)
+    return summary
