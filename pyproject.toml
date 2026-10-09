@@ -22,6 +22,7 @@ Homepage = "https://github.com/kclinmicro/emuse"
 
 [project.scripts]
 emuse = "emuse.make_report:main"
+emuse-alignment-metrics = "emuse.make_report:alignment_metrics_main"
 
 [tool.pixi.workspace]
 channels = ["conda-forge", "bioconda"]

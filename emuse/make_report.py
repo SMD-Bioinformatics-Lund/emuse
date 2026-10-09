@@ -3,6 +3,7 @@ from importlib import resources
 from pathlib import Path
 import tomllib
 
+from emuse.alignment import alignment_metrics, write_alignment_metrics
 from emuse.report import render_report
 
 # Bundled package data (templates, CSS, taxonomy mapping, default config)
@@ -38,6 +39,15 @@ def main():
 
     with open(args.output_file, "w") as f:
         f.write(html)
+
+
+def alignment_metrics_main(argv=None):
+    argp = argparse.ArgumentParser()
+    argp.add_argument("-a", "--alignments", type=str, required=True, help="Emu alignments (SAM or BAM)")
+    argp.add_argument("-o", "--output-file", type=str, required=True, help="Path to the output TSV")
+
+    args = argp.parse_args(argv)
+    write_alignment_metrics(alignment_metrics(args.alignments), args.output_file)
 
 
 if __name__ == "__main__":
