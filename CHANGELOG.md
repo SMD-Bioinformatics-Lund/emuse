@@ -7,14 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [dev]
 
+### Added
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Added `emuse-alignment-metrics` command that writes median identity and coverage per taxon to a TSV (by @ryanjameskennedy)
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Added comparison of samples against several negative controls (by @ryanjameskennedy)
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Added summary stats with reads before and after filtering (by @ryanjameskennedy)
+
 ### Changed
 - [#24](https://github.com/kclinmicro/emuse/pull/24) Changed rows in Summary statistics, adding corrected rows for Number of reads before and after qc and downsampling (by @AnnaNoren)
 - [#26](https://github.com/kclinmicro/emuse/pull/26) Version is read from `emuse/__init__.py` (by @ryanjameskennedy)
 - [#22](https://github.com/kclinmicro/emuse/pull/22) Moved parsing, highlighting rules and alignment metrics into importable modules, report output is unchanged (by @ryanjameskennedy)
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Alignment metrics are computed from the alignments only, values are unchanged (by @ryanjameskennedy)
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Moved report rendering into `report.py` (by @ryanjameskennedy)
 
 ### Fixed
 - [#25](https://github.com/kclinmicro/emuse/pull/25) Fixed bundled config path handling (reported by @ryanjameskennedy, fixed by @AnnaNoren)
 - [#26](https://github.com/kclinmicro/emuse/pull/26) Fixed version mismatch across 3 files (by @ryanjameskennedy)
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Fixed Emu outputs only being found with `_downsampled` names, fixes #18 (by @ryanjameskennedy)
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Fixed abundance columns being selected by position, which broke ITS results, see #12 (by @ryanjameskennedy)
+- [#27](https://github.com/kclinmicro/emuse/pull/27) Fixed `--prob-score` failing when the abundance table has no unmapped rows (by @ryanjameskennedy)
 
 ## [1.1.0]
 
